@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run webhook_receiver.py",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/webhook_receiver.py",
+      "console": "integratedTerminal",
+      "env": {
+        "PORT": "8000",
+        "CLIENT_ID": "demo-client-id",
+        "CLIENT_SECRET": "demo-client-secret",
+        "JWT_SECRET_KEY": "local-dev-jwt-secret-key-please-change-me",
+        "TOKEN_EXPIRES_IN": "3600"
+      }
+    },
+    {
+      "name": "Run client_example.py",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/client_example.py",
+      "console": "integratedTerminal",
+      "args": [
+        "--base-url", "http://localhost:8000",
+        "--client-id", "demo-client-id",
+        "--client-secret", "demo-client-secret"
+      ]
+    }
+  ]
+}

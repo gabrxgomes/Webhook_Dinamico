@@ -4,7 +4,7 @@ import hmac
 import secrets
 from datetime import datetime, timedelta, timezone
 
-import jwt
+import jwt  
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)

@@ -61,6 +61,11 @@ Webhook_Dinamico/
 ├── render.yaml            # Render deployment configuration (Blueprint)
 ├── start.sh                # script to run locally (development only)
 ├── .env.example            # example environment variables
+├── .vscode/
+│   ├── settings.json       # points VSCode at the venv interpreter
+│   └── launch.json         # F5 run configs for the server and the example client
+├── postman/
+│   └── Webhook_Dinamico.postman_collection.json   # importable Postman collection
 ├── DOCUMENTATION.md        # this file
 ├── .client_secret          # auto-generated local secret (do not commit)
 └── .jwt_secret_key         # auto-generated local signing key (do not commit)
@@ -157,11 +162,39 @@ environment variables** (the `render.yaml` Blueprint does this for you with
    ./start.sh
    # or with your own credentials:
    CLIENT_ID=my-id CLIENT_SECRET=my-secret ./start.sh
+   # on macOS, port 5000 is often taken by AirPlay Receiver - use another port:
+   PORT=8000 ./start.sh
    ```
 
-   The server starts at `http://localhost:5000` and prints the active
-   `CLIENT_ID`/`CLIENT_SECRET` and the source of each secret (env var or
-   local file) on startup.
+   The server starts at `http://localhost:5000` (or whatever `PORT` you set)
+   and prints the active `CLIENT_ID`/`CLIENT_SECRET` and the source of each
+   secret (env var or local file) on startup.
+
+### Running locally in VSCode
+
+The repo ships with `.vscode/settings.json` and `.vscode/launch.json` so the
+project works out of the box once opened as a folder in VSCode:
+
+1. Open the `Webhook_Dinamico` folder in VSCode.
+2. Create the venv and install dependencies from the integrated terminal
+   (step 2 above) if you haven't already.
+3. `Cmd+Shift+P` → **Python: Select Interpreter** → choose
+   `./venv/bin/python3 ('venv')`. This makes the ▶️ Play button and the
+   integrated terminal use the same Python.
+4. Open the **Run and Debug** panel (`Cmd+Shift+D`) and pick a configuration
+   from the dropdown:
+   - **Run webhook_receiver.py** — starts the server on port `8000` with
+     demo credentials (`demo-client-id` / `demo-client-secret`) already set
+     as env vars, avoiding the port-5000/AirPlay conflict.
+   - **Run client_example.py** — runs the example client against
+     `http://localhost:8000` with the same demo credentials.
+5. Press `F5` to launch the selected configuration.
+
+If `import jwt` fails with `ModuleNotFoundError` even though the venv is
+selected, or `jwt.encode` raises `AttributeError: module 'jwt' has no
+attribute 'encode'`, check for a name collision: `pip list | grep jwt`
+should show only `PyJWT`, never a second package literally called `jwt`.
+If both appear, run `pip uninstall jwt PyJWT -y && pip install PyJWT` to fix it.
 
 ---
 
@@ -227,6 +260,64 @@ python client_example.py \
 
 Point `--base-url` at your Render URL to run the exact same checks against
 production.
+
+---
+
+## Testing with Postman
+
+A ready-to-import collection is included at
+`postman/Webhook_Dinamico.postman_collection.json`. It contains 4 requests
+and chains them automatically (the token request stores the token into a
+collection variable that the Bearer request reuses).
+
+### Import the collection
+
+1. Open Postman → **Import** → select
+   `postman/Webhook_Dinamico.postman_collection.json`.
+2. Click the collection name → **Variables** tab and confirm/edit:
+   - `base_url` — `http://localhost:8000` for local, or your Render URL
+     once deployed
+   - `client_id` — `demo-client-id` (or your real value)
+   - `client_secret` — `demo-client-secret` (or your real value)
+   - `access_token` — leave empty, it's filled in automatically
+
+### Run the requests, in order
+
+1. **1. Get Bearer Token** — `POST {{base_url}}/oauth/token` with
+   **Authorization → Basic Auth** set to `{{client_id}}` / `{{client_secret}}`.
+   Click **Send**. You should get `200` with an `access_token`. A small test
+   script on this request automatically copies that token into the
+   `access_token` collection variable — check the **Test Results** tab to
+   confirm it ran.
+2. **2. Send Webhook (Basic)** — `POST {{base_url}}/webhook/basic`, also
+   using Basic Auth, with a JSON body in the **Body → raw → JSON** tab.
+   Click **Send** → expect `200` with `"auth_method": "basic"`.
+3. **3. Send Webhook (Bearer)** — `POST {{base_url}}/webhook/bearer`, with
+   **Authorization → Bearer Token** set to `{{access_token}}` (already
+   filled in from step 1). Click **Send** → expect `200` with
+   `"auth_method": "bearer"`.
+4. **4. Health Check** — `GET {{base_url}}/health` → expect `200` with
+   `{"status": "ok"}`.
+
+### Building it from scratch manually (without importing the collection)
+
+If you'd rather configure requests by hand: create a new request, set the
+method and URL, then:
+
+- For Basic-auth requests: **Authorization** tab → type **Basic Auth** →
+  fill in `Username` (`client_id`) and `Password` (`client_secret`). Postman
+  adds the `Authorization: Basic ...` header for you.
+- For the Bearer request: **Authorization** tab → type **Bearer Token** →
+  paste the `access_token` value you got from the token request.
+- For POST requests with a body: **Body** tab → **raw** → choose **JSON**
+  from the dropdown → paste a payload like `{"event": "test"}`.
+
+### Confirming what you sent
+
+Whichever way you run it, check the terminal where `webhook_receiver.py` is
+running — every webhook is echoed there with the method label
+(`[BASIC]`/`[BEARER]`) and the full JSON body, and every rejected request
+logs why (missing/invalid credentials or token).
 
 ---
 

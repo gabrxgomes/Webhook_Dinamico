@@ -1,0 +1,113 @@
+{
+  "info": {
+    "_postman_id": "12bc1ccc-3483-4863-a4e7-343cd70e586d",
+    "name": "Webhook Dinamico",
+    "description": "Basic + Bearer authentication webhook receiver. Run \"1. Get Bearer Token\" first - it automatically stores the access_token into the collection variable used by \"3. Send Webhook (Bearer)\".",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Get Bearer Token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "{{client_id}}", "type": "string" },
+            { "key": "password", "value": "{{client_secret}}", "type": "string" }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/oauth/token",
+          "host": ["{{base_url}}"],
+          "path": ["oauth", "token"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const body = pm.response.json();",
+              "    pm.collectionVariables.set('access_token', body.access_token);",
+              "    console.log('Stored access_token in collection variable.');",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Send Webhook (Basic)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "{{client_id}}", "type": "string" },
+            { "key": "password", "value": "{{client_secret}}", "type": "string" }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event\": \"order.updated\",\n  \"order_id\": 123,\n  \"source\": \"postman\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{base_url}}/webhook/basic",
+          "host": ["{{base_url}}"],
+          "path": ["webhook", "basic"]
+        }
+      }
+    },
+    {
+      "name": "3. Send Webhook (Bearer)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{access_token}}", "type": "string" }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event\": \"order.created\",\n  \"order_id\": 123,\n  \"source\": \"postman\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{base_url}}/webhook/bearer",
+          "host": ["{{base_url}}"],
+          "path": ["webhook", "bearer"]
+        }
+      }
+    },
+    {
+      "name": "4. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "client_id", "value": "demo-client-id", "type": "string" },
+    { "key": "client_secret", "value": "demo-client-secret", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" }
+  ]
+}
