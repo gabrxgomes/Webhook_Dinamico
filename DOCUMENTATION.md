@@ -345,7 +345,32 @@ logs why (missing/invalid credentials or token).
 
 ## Deploying to Render
 
-### Option A — Blueprint (recommended, uses `render.yaml`)
+Both options below deploy the exact same app on Render's **free** instance
+type — same tier used for `Webhook_Tester`. `render.yaml` now pins
+`plan: free` explicitly so a Blueprint deploy can't silently default to a
+paid plan.
+
+### Option A — Manual Web Service (recommended — matches `Webhook_Tester`'s setup)
+
+1. Render Dashboard → **New** → **Web Service** → connect the
+   `Webhook_Dinamico` repo.
+2. Runtime: `Python 3`.
+3. Instance type: **Free**.
+4. Build command: `pip install -r requirements.txt`
+5. Start command: `gunicorn webhook_receiver:app --bind 0.0.0.0:$PORT`
+6. Under **Environment**, add:
+   - `CLIENT_ID` — choose a value, e.g. `Dinamic_webhook_test`
+   - `CLIENT_SECRET` — click "Generate" or paste your own strong secret
+   - `JWT_SECRET_KEY` — click "Generate" or paste your own strong secret (32+ bytes)
+   - `TOKEN_EXPIRES_IN` — `3600` (optional)
+7. Click **Create Web Service**.
+8. Once deployed, your service is reachable at:
+   ```
+   https://webhook-dinamico-XXXX.onrender.com
+   ```
+   (Render appends a random suffix unless you claim a custom name).
+
+### Option B — Blueprint (uses `render.yaml`, may prompt for plan/payment info on some accounts)
 
 1. Push this repository to your own GitHub account (see [Deploying
    updates](#deploying-updates) below if you need to do this manually).
@@ -353,32 +378,16 @@ logs why (missing/invalid credentials or token).
    **Blueprint**.
 3. Connect your GitHub account if you haven't already, then select the
    `Webhook_Dinamico` repository.
-4. Render reads `render.yaml` and shows the `webhook-dinamico` service. It
-   will ask you to fill in `CLIENT_ID` (the only variable marked
-   `sync: false`) — choose any identifier you like, e.g. `my-app-client`.
+4. Render reads `render.yaml` and shows the `webhook-dinamico` service
+   (plan already set to **Free**). It will ask you to fill in `CLIENT_ID`
+   (the only variable marked `sync: false`) — e.g. `Dinamic_webhook_test`.
    `CLIENT_SECRET` and `JWT_SECRET_KEY` are generated automatically and kept
    secret.
 5. Click **Apply** / **Create Blueprint**. Render builds and deploys the
    service.
-6. Once deployed, your service is reachable at:
-   ```
-   https://webhook-dinamico-XXXX.onrender.com
-   ```
-   (Render appends a random suffix unless you claim a custom name).
-
-### Option B — Manual Web Service
-
-1. Render Dashboard → **New** → **Web Service** → connect the
-   `Webhook_Dinamico` repo.
-2. Runtime: `Python 3`.
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `gunicorn webhook_receiver:app --bind 0.0.0.0:$PORT`
-5. Under **Environment**, add:
-   - `CLIENT_ID` — choose a value, e.g. `my-app-client`
-   - `CLIENT_SECRET` — click "Generate" or paste your own strong secret
-   - `JWT_SECRET_KEY` — click "Generate" or paste your own strong secret (32+ bytes)
-   - `TOKEN_EXPIRES_IN` — `3600` (optional)
-6. Click **Create Web Service**.
+6. If Render still shows a paid plan or asks for billing info before
+   letting you apply the Blueprint, use Option A instead — it's the path
+   already proven to work on a free account.
 
 ### Viewing the credentials after deploy
 
