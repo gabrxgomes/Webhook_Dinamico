@@ -140,6 +140,28 @@ works with zero setup. **On Render, always set these explicitly as
 environment variables** (the `render.yaml` Blueprint does this for you with
 `generateValue: true`).
 
+### Where real credentials should live
+
+The app auto-loads a local `.env` file on startup (via `python-dotenv`), so
+for local development you can copy `.env.example` to `.env` and fill in real
+values:
+
+```bash
+cp .env.example .env
+# then edit .env with your actual CLIENT_ID / CLIENT_SECRET
+```
+
+`.env` is listed in `.gitignore` — **never commit it**. This repository is
+public, so anything pushed to it (including past commits, since git history
+is permanent) is visible to anyone and gets scraped by bots that hunt for
+leaked credentials. The rule of thumb:
+
+| Environment | Where the real `CLIENT_ID` / `CLIENT_SECRET` / `JWT_SECRET_KEY` live |
+|---|---|
+| Local dev   | a local `.env` file (gitignored, never committed) |
+| Render      | the service's **Environment** tab in the Render dashboard (encrypted, never touches git) |
+| Source code | only placeholders/defaults — never real secrets |
+
 ---
 
 ## Running locally
