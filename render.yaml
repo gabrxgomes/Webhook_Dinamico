@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: webhook-dinamico
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn webhook_receiver:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: CLIENT_ID
+        sync: false
+      - key: CLIENT_SECRET
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: TOKEN_EXPIRES_IN
+        value: "3600"
