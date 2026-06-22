@@ -59,6 +59,32 @@ def verify_basic_auth(req):
     return valid_id and valid_secret
 
 
+def extract_client_credentials(req):
+    """
+    OAuth2 client_credentials clients send client_id/client_secret either as
+    an HTTP Basic Auth header or as body parameters (JSON or form-encoded).
+    Support both so third-party "dynamic token" integrations work regardless
+    of which style they use.
+    """
+    auth = req.authorization
+    if auth is not None and auth.type == "basic":
+        return auth.username, auth.password
+
+    body = req.get_json(silent=True) or {}
+    client_id = body.get("client_id") or req.form.get("client_id")
+    client_secret = body.get("client_secret") or req.form.get("client_secret")
+    return client_id, client_secret
+
+
+def credentials_valid(client_id, client_secret):
+    if not client_id or not client_secret:
+        return False
+    return (
+        hmac.compare_digest(client_id, CLIENT_ID)
+        and hmac.compare_digest(client_secret, CLIENT_SECRET)
+    )
+
+
 def generate_bearer_token(client_id):
     now = datetime.now(timezone.utc)
     payload = {
@@ -109,9 +135,11 @@ def print_received(req, method_label):
 def issue_token():
     """
     Issues a Bearer token. The ONLY way to get a token is to POST here with
-    valid HTTP Basic credentials (client_id / client_secret).
+    valid client_id / client_secret, sent either via HTTP Basic Auth or as a
+    JSON/form body (client_id, client_secret).
     """
-    if not verify_basic_auth(request):
+    client_id, client_secret = extract_client_credentials(request)
+    if not credentials_valid(client_id, client_secret):
         log("TOKEN REQUEST REJECTED - invalid client_id/secret")
         resp = jsonify({
             "error": "invalid_client",

@@ -82,6 +82,20 @@ Webhook_Dinamico/
 | POST   | `/webhook/bearer`| Bearer (JWT from `/oauth/token`) | Receives a webhook, returns a Bearer-auth-specific payload |
 | GET    | `/health`        | none                     | Health check, used by UptimeRobot                  |
 
+### How to send credentials to /oauth/token
+
+`client_id`/`client_secret` can be sent in any of these ways — pick whichever
+your integration platform supports:
+
+- **HTTP Basic Auth** (`Authorization: Basic base64(client_id:secret)`)
+- **JSON body**: `{"client_id": "...", "client_secret": "..."}`
+- **Form-encoded body**: `client_id=...&client_secret=...`
+
+This matters for third-party "OAuth2 / dynamic token" webhook integrations
+(e.g. ATS platforms with a generic "Token URL + Client ID + Client Secret"
+config) — some send Basic Auth, others send the credentials in the body.
+Both work here.
+
 ### Response payloads
 
 `POST /oauth/token` (success, `200`):
