@@ -1,113 +1,241 @@
 {
   "info": {
-    "_postman_id": "12bc1ccc-3483-4863-a4e7-343cd70e586d",
-    "name": "Webhook Dinamico",
-    "description": "Basic + Bearer authentication webhook receiver. Run \"1. Get Bearer Token\" first - it automatically stores the access_token into the collection variable used by \"3. Send Webhook (Bearer)\".",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "_postman_id": "61d17a2c-9319-459c-abf0-fc5094232f16",
+    "name": "Dinamic_Webhook",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37930367"
   },
   "item": [
     {
-      "name": "1. Get Bearer Token",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "auth": {
-          "type": "basic",
-          "basic": [
-            { "key": "username", "value": "{{client_id}}", "type": "string" },
-            { "key": "password", "value": "{{client_secret}}", "type": "string" }
-          ]
-        },
-        "url": {
-          "raw": "{{base_url}}/oauth/token",
-          "host": ["{{base_url}}"],
-          "path": ["oauth", "token"]
-        }
+      "name": "Health_Check",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
       },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "if (pm.response.code === 200) {",
-              "    const body = pm.response.json();",
-              "    pm.collectionVariables.set('access_token', body.access_token);",
-              "    console.log('Stored access_token in collection variable.');",
-              "}"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Send Webhook (Basic)",
       "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
         "auth": {
-          "type": "basic",
-          "basic": [
-            { "key": "username", "value": "{{client_id}}", "type": "string" },
-            { "key": "password", "value": "{{client_secret}}", "type": "string" }
-          ]
+          "type": "noauth"
         },
+        "method": "GET",
+        "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"event\": \"order.updated\",\n  \"order_id\": 123,\n  \"source\": \"postman\"\n}",
-          "options": { "raw": { "language": "json" } }
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         },
         "url": {
-          "raw": "{{base_url}}/webhook/basic",
-          "host": ["{{base_url}}"],
-          "path": ["webhook", "basic"]
+          "raw": "https://webhook-dinamico.onrender.com/health",
+          "protocol": "https",
+          "host": [
+            "webhook-dinamico",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "health"
+          ]
         }
-      }
+      },
+      "response": []
     },
     {
-      "name": "3. Send Webhook (Bearer)",
+      "name": "JWT Bearer",
       "request": {
+        "auth": {
+          "type": "jwt",
+          "jwt": [
+            {
+              "key": "secret",
+              "value": "c031ddad9d3704710d3c9b485d7f6b56",
+              "type": "string"
+            },
+            {
+              "key": "algorithm",
+              "value": "HS256",
+              "type": "string"
+            },
+            {
+              "key": "isSecretBase64Encoded",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "key": "payload",
+              "value": "{}",
+              "type": "string"
+            },
+            {
+              "key": "addTokenTo",
+              "value": "header",
+              "type": "string"
+            },
+            {
+              "key": "headerPrefix",
+              "value": "Bearer",
+              "type": "string"
+            },
+            {
+              "key": "queryParamKey",
+              "value": "token",
+              "type": "string"
+            },
+            {
+              "key": "header",
+              "value": "{}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"test\":\"ök\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://webhook-dinamico.onrender.com/webhook/bearer",
+          "protocol": "https",
+          "host": [
+            "webhook-dinamico",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "webhook",
+            "bearer"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Basic_Auth",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "Dinamic_webhook_test",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "H8th98h76f657!",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"test\":\"ök\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://webhook-dinamico.onrender.com/webhook/basic",
+          "protocol": "https",
+          "host": [
+            "webhook-dinamico",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "webhook",
+            "basic"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Bearer_Auth",
+      "request": {
         "auth": {
           "type": "bearer",
           "bearer": [
-            { "key": "token", "value": "{{access_token}}", "type": "string" }
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEaW5hbWljX3dlYmhvb2tfdGVzdCIsImlhdCI6MTc4MjE2MDA0OCwiZXhwIjoxNzgyMTYzNjQ4LCJzY29wZSI6IndlYmhvb2s6cmVjZWl2ZSJ9.gKMUpbSdQu29ciSdy0gbE-ZfEdlDaW3rIdRleaOJNrA",
+              "type": "string"
+            }
           ]
         },
+        "method": "POST",
+        "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"event\": \"order.created\",\n  \"order_id\": 123,\n  \"source\": \"postman\"\n}",
-          "options": { "raw": { "language": "json" } }
+          "raw": "{\"test\":\"ök\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         },
         "url": {
-          "raw": "{{base_url}}/webhook/bearer",
-          "host": ["{{base_url}}"],
-          "path": ["webhook", "bearer"]
+          "raw": "https://webhook-dinamico.onrender.com/webhook/bearer",
+          "protocol": "https",
+          "host": [
+            "webhook-dinamico",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "webhook",
+            "bearer"
+          ]
         }
-      }
+      },
+      "response": []
     },
     {
-      "name": "4. Health Check",
+      "name": "Get_Bearer_Token",
       "request": {
-        "method": "GET",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "Dinamic_webhook_test",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "H8th98h76f657!",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/health",
-          "host": ["{{base_url}}"],
-          "path": ["health"]
+          "raw": "https://webhook-dinamico.onrender.com/oauth/token",
+          "protocol": "https",
+          "host": [
+            "webhook-dinamico",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "oauth",
+            "token"
+          ]
         }
-      }
+      },
+      "response": []
     }
-  ],
-  "variable": [
-    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
-    { "key": "client_id", "value": "demo-client-id", "type": "string" },
-    { "key": "client_secret", "value": "demo-client-secret", "type": "string" },
-    { "key": "access_token", "value": "", "type": "string" }
   ]
 }
